@@ -83,22 +83,22 @@ int main(){
         }
         for(int i = 0; i < bullets.size(); i++){
             float speed = bullets[i].getSpeed() / (float)fps;
-            std::cout << "speed: " << speed << std::endl;
+            // std::cout << "speed: " << speed << std::endl;
             bullets[i].shape.move(speed * (sinf32(bullets[i].rotation * (M_PI/180))), -speed * (cosf32((float)bullets[i].rotation * (M_PI/180))));
         }
         std::vector<std::tuple<int, int>> rmcollision;
         for(int i = 0; i < bullets.size(); i++){
             for(int x = 0; x < rects.size(); x++){
-                if(bullets[i].shape.getPosition().x + 10 > rects[x].shape.getPosition().x || bullets[i].shape.getPosition().x - 10 < rects[x].shape.getPosition().x + (RECTWIDTH-MARGIN)){
-                    hitblock(i, x);
-                    i--;
-                    x--;
-                    break;
+                if(bullets[i].shape.getPosition().x + 10 > rects[x].shape.getPosition().x && bullets[i].shape.getPosition().x + 10 < rects[x].shape.getPosition().x + (RECTWIDTH - MARGIN) || bullets[i].shape.getPosition().x - 10 < rects[x].shape.getPosition().x + (RECTWIDTH-MARGIN) && bullets[i].shape.getPosition().x - 10 > rects[x].shape.getPosition().x){
+                    if(bullets[i].shape.getPosition().y - 10 < rects[x].shape.getPosition().y + (RECTHEIGHT-MARGIN)){
+                        hitblock(i, x);
+                        i--;
+                        x--;
+                        break;
+                    }
                 }
             }
         }
-
-        hitblock(&rmcollision);
         movedown = false;
 
         if(std::chrono::duration<float, std::milli>(STEADY_CLOCK::now() - falltimer).count() > BLOCKDELAY){
@@ -186,6 +186,7 @@ static void shoot(){
     bullets.push_back(newbullet);
 }
 
-static void hitblock(int i, int x){
-    //ADD REMOVE ELIMENTS
+static void hitblock(int bulletindex, int blockindex){
+    bullets.erase(bullets.begin() + bulletindex);
+    rects.erase(rects.begin() + blockindex);
 }
