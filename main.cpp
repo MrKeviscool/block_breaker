@@ -1,6 +1,7 @@
 #include <iostream>
 #include <math.h>
 #include <vector>
+#include <list>
 #include <chrono>
 #include <SFML/Graphics.hpp>
 
@@ -12,7 +13,7 @@
 #define RECTHEIGHT 36
 #define MARGIN 8
 #define BLOCKDELAY 1000
-#define SHOOTDELAY 500
+#define SHOOTDELAY 100
 #define CANHEIGHT 60
 #define CANWIDTH 30
 
@@ -92,10 +93,16 @@ int main(){
                 if(bullets[i].shape.getPosition().x + 10 > rects[x].shape.getPosition().x && bullets[i].shape.getPosition().x + 10 < rects[x].shape.getPosition().x + (RECTWIDTH - MARGIN) || bullets[i].shape.getPosition().x - 10 < rects[x].shape.getPosition().x + (RECTWIDTH-MARGIN) && bullets[i].shape.getPosition().x - 10 > rects[x].shape.getPosition().x){
                     if(bullets[i].shape.getPosition().y - 10 < rects[x].shape.getPosition().y + (RECTHEIGHT-MARGIN)){
                         bullets.erase(bullets.begin()+i);
-                        rects.erase(rects.begin() + x);
                         i--;
-                        x--;
-                        break;
+                        rects[x].health--;
+                        if(rects[x].health == 0){
+                            rects.erase(rects.begin() + x);
+                            x--;
+                            break;
+                        }
+                        else{
+                            setcolor(&rects[x], rects[x].health);
+                        }
                     }
                 }
             }
@@ -104,7 +111,7 @@ int main(){
 
         if(std::chrono::duration<float, std::milli>(STEADY_CLOCK::now() - falltimer).count() > BLOCKDELAY){
             movedown = true;
-            addBlock((std::rand() % (WIDTH/RECTWIDTH)*RECTWIDTH), -RECTHEIGHT, 1);
+            addBlock((std::rand() % (WIDTH/RECTWIDTH)*RECTWIDTH), -RECTHEIGHT, 6);
             falltimer = STEADY_CLOCK::now();
         }
         cannon.setRotation(-(atan2((WIDTH/2)-sf::Mouse::getPosition(window).x, (HEIGHT-CANHEIGHT)-sf::Mouse::getPosition(window).y) * 180 / M_PI));
