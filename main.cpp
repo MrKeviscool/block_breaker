@@ -20,7 +20,7 @@
 struct block;
 struct projectile;
 
-static void display(), manageEvent(sf::Event event), addBlock(int x, int y, int health), setcolor(block *curblock, int health), delay(int ms), shoot(), hitblock(int i, int x);
+static void display(), manageEvent(sf::Event event), addBlock(int x, int y, int health), setcolor(block *curblock, int health), delay(int ms), shoot();
 
 class block{
     private:
@@ -91,7 +91,8 @@ int main(){
             for(int x = 0; x < rects.size(); x++){
                 if(bullets[i].shape.getPosition().x + 10 > rects[x].shape.getPosition().x && bullets[i].shape.getPosition().x + 10 < rects[x].shape.getPosition().x + (RECTWIDTH - MARGIN) || bullets[i].shape.getPosition().x - 10 < rects[x].shape.getPosition().x + (RECTWIDTH-MARGIN) && bullets[i].shape.getPosition().x - 10 > rects[x].shape.getPosition().x){
                     if(bullets[i].shape.getPosition().y - 10 < rects[x].shape.getPosition().y + (RECTHEIGHT-MARGIN)){
-                        hitblock(i, x);
+                        bullets.erase(bullets.begin()+i);
+                        rects.erase(rects.begin() + x);
                         i--;
                         x--;
                         break;
@@ -184,9 +185,4 @@ static void shoot(){
     newbullet.shape.setOrigin(10, 10);
     newbullet.shape.setPosition(CANHEIGHT*(sinf32((float)cannon.getRotation() * (M_PI/180))) + cannon.getPosition().x, cannon.getPosition().y - CANHEIGHT*(cosf32((float)cannon.getRotation() * (M_PI/180))));
     bullets.push_back(newbullet);
-}
-
-static void hitblock(int bulletindex, int blockindex){
-    bullets.erase(bullets.begin() + bulletindex);
-    rects.erase(rects.begin() + blockindex);
 }
