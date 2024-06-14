@@ -20,7 +20,7 @@
 struct block;
 struct projectile;
 
-static void display(), manageEvent(sf::Event event), addBlock(int x, int y, int health), setcolor(block *curblock, int health), delay(int ms), shoot(), hitblock(int rectindex, int shellindex);
+static void display(), manageEvent(sf::Event event), addBlock(int x, int y, int health), setcolor(block *curblock, int health), delay(int ms), shoot(), hitblock(int i, int x);
 
 class block{
     private:
@@ -86,6 +86,19 @@ int main(){
             std::cout << "speed: " << speed << std::endl;
             bullets[i].shape.move(speed * (sinf32(bullets[i].rotation * (M_PI/180))), -speed * (cosf32((float)bullets[i].rotation * (M_PI/180))));
         }
+        std::vector<std::tuple<int, int>> rmcollision;
+        for(int i = 0; i < bullets.size(); i++){
+            for(int x = 0; x < rects.size(); x++){
+                if(bullets[i].shape.getPosition().x + 10 > rects[x].shape.getPosition().x || bullets[i].shape.getPosition().x - 10 < rects[x].shape.getPosition().x + (RECTWIDTH-MARGIN)){
+                    hitblock(i, x);
+                    i--;
+                    x--;
+                    break;
+                }
+            }
+        }
+
+        hitblock(&rmcollision);
         movedown = false;
 
         if(std::chrono::duration<float, std::milli>(STEADY_CLOCK::now() - falltimer).count() > BLOCKDELAY){
@@ -102,7 +115,7 @@ int main(){
 
         leftclicked = false;
         fps = std::chrono::duration<float, std::milli>(STEADY_CLOCK::now() - fpstimer).count() * 1000;
-        std::cout << "fps based on frame time: " << fps << std::endl;
+        // std::cout << "fps based on frame time: " << fps << std::endl;
     }
 }
 
@@ -173,7 +186,6 @@ static void shoot(){
     bullets.push_back(newbullet);
 }
 
-static void hitblock(int rectindex, int shellindex){
-    rects.erase(rects.begin());
-    bullets.erase(bullets.begin());
+static void hitblock(int i, int x){
+    //ADD REMOVE ELIMENTS
 }
