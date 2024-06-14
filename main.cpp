@@ -22,21 +22,34 @@ struct projectile;
 
 static void display(), manageEvent(sf::Event event), addBlock(int x, int y, int health), setcolor(block *curblock, int health), delay(int ms), shoot(), hitblock(int rectindex, int shellindex);
 
-struct block{
-    sf::RectangleShape shape;
-    int health;
-    int points;
-    
-    sf::Vector2f midpos(){
-        return(sf::Vector2f(this->shape.getPosition().x + RECTWIDTH/2, this->shape.getPosition().y + RECTHEIGHT/2));
-    }
+class block{
+    private:
+        int points;
+    public:
+        sf::RectangleShape shape;
+        int health;
+        block(sf::RectangleShape shape, int health) : shape(shape), health(health){
+            points = health;
+        }
+        sf::Vector2f midpos(){
+            return(sf::Vector2f(this->shape.getPosition().x + RECTWIDTH/2, this->shape.getPosition().y + RECTHEIGHT/2));
+        }
+        int getPoints(){
+            return points;
+        }
 };
 
-struct projectile{
-    sf::RectangleShape shape;
-    int bounces;
-    int speed;
-    float rotation;
+class projectile{
+    private:
+        int speed;
+    public:
+        sf::RectangleShape shape;
+        int bounces;
+        float rotation;
+        projectile(sf::RectangleShape shape, int speed, int bounces, float rotation) : shape(shape), speed(speed), bounces(bounces), rotation(rotation){}
+        int getSpeed(){
+            return speed;
+        }
 };
 
 sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "block breaker", sf::Style::Fullscreen);
@@ -69,16 +82,9 @@ int main(){
             }
         }
         for(int i = 0; i < bullets.size(); i++){
-            float speed = bullets[i].speed / (float)fps;
+            float speed = bullets[i].getSpeed() / (float)fps;
             std::cout << "speed: " << speed << std::endl;
             bullets[i].shape.move(speed * (sinf32(bullets[i].rotation * (M_PI/180))), -speed * (cosf32((float)bullets[i].rotation * (M_PI/180))));
-            for(int x = 0; x < rects.size(); x ++){
-                if(bullets[i].shape.getPosition().x + 10 > rects[i].shape.getPosition().x|| bullets[i].shape.getPosition().x - 10 < rects[i].shape.getPosition().x + RECTWIDTH){
-                    if(bullets[i].shape.getPosition().y < rects[i].shape.getPosition().y + RECTHEIGHT){
-                        hitblock(1, 1);
-                    }
-                }
-            }
         }
         movedown = false;
 
@@ -127,7 +133,7 @@ static void manageEvent(sf::Event event){
 }
 
 static void addBlock(int x, int y, int health){
-    block newblock{shape: sf::RectangleShape(sf::Vector2f(RECTWIDTH-MARGIN, RECTHEIGHT-MARGIN)), health, points: health};
+    block newblock(sf::RectangleShape(sf::Vector2f(RECTWIDTH-MARGIN, RECTHEIGHT-MARGIN)), health);
     newblock.shape.setPosition(sf::Vector2f(x, y));
     setcolor(&newblock, health);
     rects.push_back(newblock);
@@ -161,18 +167,13 @@ static void delay(int ms){
 }
 
 static void shoot(){
-    projectile newbullet{shape: sf::RectangleShape(sf::Vector2f(20, 20)), bounces: 1, speed: 30, rotation: cannon.getRotation()};
+    projectile newbullet(sf::RectangleShape(sf::Vector2f(20, 20)), 30, 1, cannon.getRotation());
     newbullet.shape.setOrigin(10, 10);
     newbullet.shape.setPosition(CANHEIGHT*(sinf32((float)cannon.getRotation() * (M_PI/180))) + cannon.getPosition().x, cannon.getPosition().y - CANHEIGHT*(cosf32((float)cannon.getRotation() * (M_PI/180))));
-    std::cout << newbullet.shape.getPosition().x << ", " << newbullet.shape.getPosition().y << std::endl;
     bullets.push_back(newbullet);
 }
 
 static void hitblock(int rectindex, int shellindex){
-    // rects[rectindex].health-=1;
-    // if(rects[rectindex].health < 0){
-    //     rects.erase(rects.begin());
-    // }
     rects.erase(rects.begin());
     bullets.erase(bullets.begin());
 }
