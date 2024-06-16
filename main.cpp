@@ -193,7 +193,7 @@ static void delay(int ms){
 }
 
 static void shoot(){
-    projectile newbullet(sf::RectangleShape(sf::Vector2f(20, 20)), 30, 1, cannon.getRotation());
+    projectile newbullet(sf::RectangleShape(sf::Vector2f(20, 20)), 100, 1, cannon.getRotation());
     newbullet.shape.setOrigin(10, 10);
     newbullet.shape.setPosition(CANHEIGHT*(sinf32((float)cannon.getRotation() * (M_PI/180))) + cannon.getPosition().x, cannon.getPosition().y - CANHEIGHT*(cosf32((float)cannon.getRotation() * (M_PI/180))));
     bullets.push_back(newbullet);
