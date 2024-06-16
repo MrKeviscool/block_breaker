@@ -90,6 +90,7 @@ int main(){
         std::vector<std::tuple<int, int>> rmcollision;
         for(int i = 0; i < bullets.size(); i++){
             for(int x = 0; x < rects.size(); x++){
+                //bullet to block collision. add it so after going inside the block, the bullet chooses the shortest distance out and then bounces.
                 if(bullets[i].shape.getPosition().x + 10 > rects[x].shape.getPosition().x && bullets[i].shape.getPosition().x + 10 < rects[x].shape.getPosition().x + (RECTWIDTH - MARGIN) || bullets[i].shape.getPosition().x - 10 < rects[x].shape.getPosition().x + (RECTWIDTH-MARGIN) && bullets[i].shape.getPosition().x - 10 > rects[x].shape.getPosition().x){
                     if(bullets[i].shape.getPosition().y - 10 < rects[x].shape.getPosition().y + (RECTHEIGHT-MARGIN)){
                         bullets.erase(bullets.begin()+i);
@@ -105,6 +106,7 @@ int main(){
                         }
                     }
                 }
+
             }
         }
         movedown = false;
