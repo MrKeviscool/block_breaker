@@ -54,66 +54,64 @@ class projectile{
 };
 
 sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "block breaker", sf::Style::Fullscreen);
-std::vector<block> rects;
-std::vector<projectile> bullets;
+std::list<block> rects;
+std::list<projectile> bullets;
 sf::RectangleShape cannon = sf::RectangleShape(sf::Vector2f(CANWIDTH, CANHEIGHT)); //30, 60
-int fps;
+int fps = 0, framesdone = 0;
 
 
 bool leftclicked = false, doneonce = false;
 
 int main(){
     std::srand(std::clock());
-    STEADY_CLOCK::time_point falltimer = STEADY_CLOCK::now();
-    STEADY_CLOCK::time_point shoottimer = STEADY_CLOCK::now();
 
     cannon.setOrigin(15, CANHEIGHT);
     cannon.setPosition(WIDTH/2, HEIGHT);
     bool movedown = false;
 
+    STEADY_CLOCK::time_point falltimer = STEADY_CLOCK::now();
+    STEADY_CLOCK::time_point shoottimer = STEADY_CLOCK::now();
+    STEADY_CLOCK::time_point fpstimer = STEADY_CLOCK::now();
+
     while (window.isOpen()){
-        STEADY_CLOCK::time_point fpstimer = STEADY_CLOCK::now();
+
         display();
         sf::Event event;
         manageEvent(event);
 
-        for(int i = 0; i < rects.size(); i ++){
+        for(std::list<block>::iterator reciter = rects.begin(); reciter != rects.end(); ++reciter){
             if(movedown){
-               rects[i].shape.move(0, RECTHEIGHT+MARGIN);
+               reciter->shape.move(0, RECTHEIGHT+MARGIN);
             }
         }
-        for(int i = 0; i < bullets.size(); i++){
-            float speed = bullets[i].getSpeed() / (float)fps;
+        for(std::list<projectile>::iterator buliter = bullets.begin(); buliter != bullets.end(); ++buliter){
+            float speed = buliter->getSpeed() / (float)fps;
             // std::cout << "speed: " << speed << std::endl;
-            bullets[i].shape.move(speed * (sinf32(bullets[i].rotation * (M_PI/180))), -speed * (cosf32((float)bullets[i].rotation * (M_PI/180))));
+            buliter->shape.move(speed * (sinf32(buliter->rotation * (M_PI/180))), -speed * (cosf32((float)buliter->rotation * (M_PI/180))));
         }
-        std::vector<std::tuple<int, int>> rmcollision;
-        for(int i = 0; i < bullets.size(); i++){
-            for(int x = 0; x < rects.size(); x++){
+        for(std::list<projectile>::iterator bul = bullets.begin(); bul != bullets.end(); ++bul){
+            for(std::list<block>::iterator rec = rects.begin(); rec != rects.end(); ++rec){
                 //bullet to block collision. add it so after going inside the block, the bullet chooses the shortest distance out and then bounces.
-                if(bullets[i].shape.getPosition().x + 10 > rects[x].shape.getPosition().x && bullets[i].shape.getPosition().x + 10 < rects[x].shape.getPosition().x + (RECTWIDTH - MARGIN) || bullets[i].shape.getPosition().x - 10 < rects[x].shape.getPosition().x + (RECTWIDTH-MARGIN) && bullets[i].shape.getPosition().x - 10 > rects[x].shape.getPosition().x){
-                    if(bullets[i].shape.getPosition().y - 10 < rects[x].shape.getPosition().y + (RECTHEIGHT-MARGIN)){
-                        bullets.erase(bullets.begin()+i);
-                        i--;
-                        rects[x].health--;
-                        if(rects[x].health == 0){
-                            rects.erase(rects.begin() + x);
-                            x--;
+                if(bul->shape.getPosition().x + 10 > rec->shape.getPosition().x && bul->shape.getPosition().x + 10 < rec->shape.getPosition().x + (RECTWIDTH - MARGIN) || bul->shape.getPosition().x - 10 < rec->shape.getPosition().x + (RECTWIDTH-MARGIN) && bul->shape.getPosition().x - 10 > rec->shape.getPosition().x){
+                    if(bul->shape.getPosition().y - 10 < rec->shape.getPosition().y + (RECTHEIGHT-MARGIN)){
+                        bul = bullets.erase(bul);
+                        rec->health--;
+                        if(rec->health == 0){
+                            rec = rects.erase(rec);
                             break;
                         }
                         else{
-                            setcolor(&rects[x], rects[x].health);
+                            setcolor(&*rec, rec->health);
                         }
                     }
                 }
-
             }
         }
         movedown = false;
 
         if(std::chrono::duration<float, std::milli>(STEADY_CLOCK::now() - falltimer).count() > BLOCKDELAY){
             movedown = true;
-            addBlock((std::rand() % (WIDTH/RECTWIDTH)*RECTWIDTH), -RECTHEIGHT, 6);
+            addBlock((std::rand() % (WIDTH/RECTWIDTH)*RECTWIDTH), -RECTHEIGHT, 102);
             falltimer = STEADY_CLOCK::now();
         }
         cannon.setRotation(-(atan2((WIDTH/2)-sf::Mouse::getPosition(window).x, (HEIGHT-CANHEIGHT)-sf::Mouse::getPosition(window).y) * 180 / M_PI));
@@ -124,18 +122,25 @@ int main(){
         }
 
         leftclicked = false;
-        fps = std::chrono::duration<float, std::milli>(STEADY_CLOCK::now() - fpstimer).count() * 1000;
+        framesdone++;
+        if(framesdone >= 100){
+            framesdone = 0;
+            fps =  100000 / std::chrono::duration<float, std::milli>(STEADY_CLOCK::now() - fpstimer).count();
+            fpstimer = STEADY_CLOCK::now();
+            std::cout << fps << std::endl;
+             //100000 because thats accounting for averaging out the 100 frames we mesured
+        }
         // std::cout << "fps based on frame time: " << fps << std::endl;
     }
 }
 
 static void display(){
     window.clear();
-    for(int i = 0; i < rects.size(); i++){
-        window.draw(rects[i].shape);
+    for(std::list<block>::iterator reciter = rects.begin(); reciter != rects.end(); ++reciter){
+        window.draw(reciter->shape);
     }
-    for(int i = 0; i < bullets.size(); i++){
-        window.draw(bullets[i].shape);
+    for(std::list<projectile>::iterator buliter = bullets.begin(); buliter != bullets.end(); ++buliter){
+        window.draw(buliter->shape);
     }
     window.draw(cannon);
     window.display();
@@ -160,6 +165,7 @@ static void addBlock(int x, int y, int health){
     newblock.shape.setPosition(sf::Vector2f(x, y));
     setcolor(&newblock, health);
     rects.push_back(newblock);
+    
 }
 
 static void setcolor(block *curblock, int health){
