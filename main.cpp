@@ -16,7 +16,7 @@
 #define SHOOTDELAY 100
 #define CANHEIGHT 60
 #define CANWIDTH 30
-
+#define FPSRESOLUTION 4
 
 struct block;
 struct projectile;
@@ -57,7 +57,7 @@ sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "block breaker", sf::Style
 std::list<block> rects;
 std::list<projectile> bullets;
 sf::RectangleShape cannon = sf::RectangleShape(sf::Vector2f(CANWIDTH, CANHEIGHT)); //30, 60
-int fps;
+int fps, framesdone = 0;
 
 
 bool leftclicked = false, doneonce = false;
@@ -70,9 +70,9 @@ int main(){
     cannon.setOrigin(15, CANHEIGHT);
     cannon.setPosition(WIDTH/2, HEIGHT);
     bool movedown = false;
+    STEADY_CLOCK::time_point fpstimer = STEADY_CLOCK::now();
 
     while (window.isOpen()){
-        STEADY_CLOCK::time_point fpstimer = STEADY_CLOCK::now();
         display();
         sf::Event event;
         manageEvent(event);
@@ -120,8 +120,15 @@ int main(){
         }
 
         leftclicked = false;
-        fps = std::chrono::duration<float, std::milli>(STEADY_CLOCK::now() - fpstimer).count() * 1000;
-        // std::cout << "fps based on frame time: " << fps << std::endl;
+        framesdone++;
+        
+        ///accurite fps counter
+        if(std::chrono::duration<float, std::milli>(STEADY_CLOCK::now() - fpstimer) >= std::chrono::milliseconds((1000/FPSRESOLUTION))){
+            fps = framesdone * FPSRESOLUTION;
+            framesdone = 0;
+            fpstimer = STEADY_CLOCK::now();
+            std::cout << "fps: " << fps << std::endl;
+        }
     }
 }
 
