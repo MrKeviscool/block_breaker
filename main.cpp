@@ -57,24 +57,22 @@ sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "block breaker", sf::Style
 std::list<block> rects;
 std::list<projectile> bullets;
 sf::RectangleShape cannon = sf::RectangleShape(sf::Vector2f(CANWIDTH, CANHEIGHT)); //30, 60
-int fps = 0, framesdone = 0;
+int fps;
 
 
 bool leftclicked = false, doneonce = false;
 
 int main(){
     std::srand(std::clock());
+    STEADY_CLOCK::time_point falltimer = STEADY_CLOCK::now();
+    STEADY_CLOCK::time_point shoottimer = STEADY_CLOCK::now();
 
     cannon.setOrigin(15, CANHEIGHT);
     cannon.setPosition(WIDTH/2, HEIGHT);
     bool movedown = false;
 
-    STEADY_CLOCK::time_point falltimer = STEADY_CLOCK::now();
-    STEADY_CLOCK::time_point shoottimer = STEADY_CLOCK::now();
-    STEADY_CLOCK::time_point fpstimer = STEADY_CLOCK::now();
-
     while (window.isOpen()){
-
+        STEADY_CLOCK::time_point fpstimer = STEADY_CLOCK::now();
         display();
         sf::Event event;
         manageEvent(event);
@@ -111,7 +109,7 @@ int main(){
 
         if(std::chrono::duration<float, std::milli>(STEADY_CLOCK::now() - falltimer).count() > BLOCKDELAY){
             movedown = true;
-            addBlock((std::rand() % (WIDTH/RECTWIDTH)*RECTWIDTH), -RECTHEIGHT, 102);
+            addBlock((std::rand() % (WIDTH/RECTWIDTH)*RECTWIDTH), -RECTHEIGHT, 100);
             falltimer = STEADY_CLOCK::now();
         }
         cannon.setRotation(-(atan2((WIDTH/2)-sf::Mouse::getPosition(window).x, (HEIGHT-CANHEIGHT)-sf::Mouse::getPosition(window).y) * 180 / M_PI));
@@ -122,14 +120,7 @@ int main(){
         }
 
         leftclicked = false;
-        framesdone++;
-        if(framesdone >= 100){
-            framesdone = 0;
-            fps =  100000 / std::chrono::duration<float, std::milli>(STEADY_CLOCK::now() - fpstimer).count();
-            fpstimer = STEADY_CLOCK::now();
-            std::cout << fps << std::endl;
-             //100000 because thats accounting for averaging out the 100 frames we mesured
-        }
+        fps = std::chrono::duration<float, std::milli>(STEADY_CLOCK::now() - fpstimer).count() * 1000;
         // std::cout << "fps based on frame time: " << fps << std::endl;
     }
 }
